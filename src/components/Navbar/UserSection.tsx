@@ -5,18 +5,18 @@ import { Link } from "@mui/material";
 import { useAuth } from "@src/hooks/useAuth";
 import { NavLink as RouterNavLink } from "react-router-dom";
 function UserSection() {
-  const { userInfo, logout } = useAuth();
+  const { user, logout } = useAuth();
 
-  return userInfo ? (
+  return user? (
     <>
       <li className="grow-0 basis-auto shrink-0">
         <span className="text-lg capitalize cursor-default">
-          Hii, {userInfo.user.name}
+          Hi, {user.name}
         </span>
       </li>
       <li className="grow-0 basis-auto shrink-0">
         <Link
-          to={`/account/${userInfo.user.id}`}
+          to={`/account/${user.id}`}
           className="text-white"
           component={RouterNavLink}
         >
@@ -42,7 +42,7 @@ function UserSection() {
     <>
       <li className="grow-0 basis-auto shrink-0">
         <Link
-          to={"/account/123456"}
+          to={"/account"}
           className="text-white"
           component={RouterNavLink}
         >

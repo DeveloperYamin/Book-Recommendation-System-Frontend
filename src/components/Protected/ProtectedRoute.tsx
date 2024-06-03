@@ -6,9 +6,9 @@ import { useAuth } from "@src/hooks/useAuth";
 import { Outlet, Navigate } from "react-router-dom";
 
 const ProtectedRoute = () => {
-  const { userInfo } = useAuth();
+  const { user } = useAuth();
 
-  return userInfo ? <Outlet /> : <Navigate to="/auth/sign-in" replace={true} />;
+  return user ? <Outlet /> : <Navigate to="/auth/sign-in" replace={true} />;
 };
 
 export default ProtectedRoute;

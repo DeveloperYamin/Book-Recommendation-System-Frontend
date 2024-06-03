@@ -1,7 +1,7 @@
 import Card from "@components/Common/Card";
 import { CircularProgress } from "@mui/material";
 import { useAuth } from "@src/hooks/useAuth";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 function Home() {
   const {
@@ -9,21 +9,31 @@ function Home() {
     searchResults,
     searchHandler,
     randomSearchResults,
-    // recommendationSearchHandler,
-    // recommendationSearchResults
+    searchTerm,
+    user,
+    recommendSearchResults,
   } = useAuth();
 
   useEffect(() => {
     (async () => {
-      await searchHandler();
-      //await recommendationSearchHandler();
+      if (searchTerm && user) {
+        await searchHandler("directed");
+      } else if (user) {
+        await searchHandler("recommend");
+      } else {
+        await searchHandler("random");
+      }
     })();
   }, []);
 
   return (
-    <section className="">
+    <section>
       <h1 className="text-center text-white ">
-        {searchResults.length ? "Search Results" : "Random Results"}
+        {searchTerm && searchResults.length
+          ? "Search Results"
+          : recommendSearchResults.length
+          ? "Recommend Results"
+          : "Random Results"}
       </h1>
       <div className="flex flex-wrap items-center justify-center w-full gap-5 p-8">
         {isSearching ? (
@@ -31,9 +41,12 @@ function Home() {
             <CircularProgress size={50} />
           </div>
         ) : (
-          (searchResults.length ? searchResults : randomSearchResults)?.map(
-            (item, idx) => <Card key={idx} item={item} />
-          )
+          (searchTerm && searchResults.length
+            ? searchResults
+            : randomSearchResults.length
+            ? randomSearchResults
+            : randomSearchResults
+          )?.map((item, idx) => <Card key={idx} item={item} />)
         )}
       </div>
     </section>

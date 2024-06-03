@@ -11,11 +11,11 @@ import Tooltip from "@mui/material/Tooltip";
 import React, { useState } from "react";
 import { NavLink as RouterNavLink } from "react-router-dom";
 import { Link, ListItemIcon } from "@mui/material";
-import { useAuth } from "@context/AuthContext";
 import { Logout } from "@mui/icons-material";
+import { useAuth } from "@src/hooks/useAuth";
 
 export default function AccountMenu() {
-  const { user, signout } = useAuth();
+  const { user, logout } = useAuth();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -101,7 +101,7 @@ export default function AccountMenu() {
 
             <MenuItem
               onClick={async () => {
-                await signout();
+                await logout();
               }}
             >
               <ListItemIcon>

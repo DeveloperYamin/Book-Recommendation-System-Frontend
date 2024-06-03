@@ -11,16 +11,15 @@
 import TextInput from "@components/Form/TextInput";
 import { useAuth } from "@src/hooks/useAuth";
 import { useDebounce } from "@src/hooks/useDebounce";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function SearchBar() {
-  const { searchHandler, userInfo } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
+  const { searchHandler, user, setSearchTerm, searchTerm } = useAuth();
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   useEffect(() => {
-    if (userInfo && debouncedSearchTerm.length >= 3) {
-      (async () => await searchHandler(debouncedSearchTerm))();
+    if (user && debouncedSearchTerm.length >= 3) {
+      (async () => await searchHandler("directed"))();
     }
   }, [debouncedSearchTerm]);
 
@@ -30,7 +29,7 @@ export default function SearchBar() {
       placeholder="Search"
       id="search"
       name="search"
-      disabled={!userInfo}
+      disabled={!user}
       value={searchTerm}
       onChange={(e) => setSearchTerm(e.target.value)}
       style={{

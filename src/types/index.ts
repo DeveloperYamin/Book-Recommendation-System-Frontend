@@ -36,7 +36,27 @@ export type Tokens = {
   refresh: RefreshToken;
 };
 
-export type UserInfo = {
+export type Auth = {
   user: User;
   tokens: Tokens;
 };
+
+export type Book = {
+  title: string;
+  thumbnail: string;
+  authors: string[];
+};
+
+export type SearchHistory = {
+  _id: string;
+  query: string;
+  userId: string;
+  genres: string[];
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+export type Profile = {
+  user: User;
+  searchHistory: SearchHistory[];
+}
