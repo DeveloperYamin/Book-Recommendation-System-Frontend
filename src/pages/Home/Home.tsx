@@ -1,15 +1,41 @@
-/**
- * The `Home` function returns a section with a heading "Search Results" and a div with flex properties
- * for displaying search results.
- * @returns The Home component is being returned, which includes a section with a heading "Search
- * Results" and a div with flex properties for displaying search results.
- */
+import Card from "@components/Common/Card";
+import { CircularProgress } from "@mui/material";
+import { useAuth } from "@src/hooks/useAuth";
+import { useEffect, useState } from "react";
 
 function Home() {
+  const {
+    isSearching,
+    searchResults,
+    searchHandler,
+    randomSearchResults,
+    // recommendationSearchHandler,
+    // recommendationSearchResults
+  } = useAuth();
+
+  useEffect(() => {
+    (async () => {
+      await searchHandler();
+      //await recommendationSearchHandler();
+    })();
+  }, []);
+
   return (
     <section className="">
-      <h1 className="text-center text-white ">Search Results</h1>
-      <div className="flex flex-wrap items-center justify-center w-full gap-5 p-8"></div>
+      <h1 className="text-center text-white ">
+        {searchResults.length ? "Search Results" : "Random Results"}
+      </h1>
+      <div className="flex flex-wrap items-center justify-center w-full gap-5 p-8">
+        {isSearching ? (
+          <div>
+            <CircularProgress size={50} />
+          </div>
+        ) : (
+          (searchResults.length ? searchResults : randomSearchResults)?.map(
+            (item, idx) => <Card key={idx} item={item} />
+          )
+        )}
+      </div>
     </section>
   );
 }
