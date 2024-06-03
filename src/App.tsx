@@ -12,21 +12,25 @@ import Home from "./pages/Home/Home";
 import Layout from "./Layout";
 import SignIn from "./pages/Auth/SignIn";
 import SignUp from "./pages/Auth/SignUp";
+import ProtectedRoute from "@components/Protected/ProtectedRoute";
+import Account from "./pages/User/Account";
 
 function App() {
   return (
-      <main className="flex flex-col items-center min-h-screen bg-dark-blue">
-        <Routes>
-          // with navbar pages
-          <Route element={<Layout />}>
-            <Route path="/" element={<Home />}></Route>
+    <main className="flex flex-col items-center min-h-screen bg-dark-blue">
+      <Routes>
+        // with navbar pages
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/account/:userId" element={<Account />} />
           </Route>
-          // without navbar pages
-          <Route path="/auth/sign-in" element={<SignIn />} />
-          <Route path="/auth/sign-up" element={<SignUp />} />
-        </Routes>
-      </main>
-      
+        </Route>
+        // without navbar pages
+        <Route path="/auth/sign-in" element={<SignIn />} />
+        <Route path="/auth/sign-up" element={<SignUp />} />
+      </Routes>
+    </main>
   );
 }
 

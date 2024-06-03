@@ -7,17 +7,19 @@
  * border. Finally, there is a `footer` element with a dark blue background containing a paragraph
  */
 
+import Navbar from "@components/Navbar/Navbar";
 import { Outlet } from "react-router-dom";
 
 export default function Layout() {
   return (
     <div className="w-full h-full bg-dark-blue">
-      <div className="flex flex-col w-full h-full p-10 space-y-5">
+      <div className="flex flex-col w-full h-full p-10 space-y-5 min-h-[90vh]">
+        <Navbar/>
         <Outlet />
       </div>
       <hr className="border-black" />
       <footer className="flex items-center justify-center w-full p-5 bg-dark-blue">
-        <p className="text-lg font-light text-red-500 ">Made by Yamin</p>
+        <p className="text-lg font-light text-white">Made by Yamin</p>
       </footer>
     </div>
   );

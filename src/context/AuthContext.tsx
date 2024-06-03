@@ -1,58 +1,59 @@
 /**
- * The above code defines an AuthProvider component in TypeScript React that manages user
- * authentication, search functionality, and API calls within a context.
- * @property {UserInfo | null} userInfo - The `userInfo` property in the `AuthContextValue` represents
- * the user information such as name, email, and tokens stored in the context. It is initially set to
- * `null` and gets updated when a user logs in or registers. The user information is stored in the
- * local storage to maintain the
- * @property login - The `login` function in the provided code is responsible for authenticating a user
- * by sending a POST request to the `/auth/login` endpoint with the user's email and password. Upon a
- * successful login, it sets the user information in the state and stores it in the local storage. If
- * there is
+ * The above code defines an AuthContext for managing user authentication and book search functionality
+ * in a TypeScript React application.
+ * @property {User | null} user - The `user` property in the `AuthContextValue` represents the
+ * currently authenticated user. It is of type `User | null`, where `User` is a type defined in your
+ * application. This property holds the information of the user who is currently logged in, or it is
+ * `null` if
+ * @property {Tokens | null} tokens - The `tokens` property in the code snippet refers to an object
+ * that contains authentication tokens for the user. These tokens are typically used for authentication
+ * and authorization purposes when making requests to protected endpoints on the server. The `tokens`
+ * object likely includes properties such as an access token, a refresh token, and
+ * @property login - The `login` function in the `AuthContextValue` type is responsible for handling
+ * user login functionality. It takes an object `data` containing `email` and `password` as parameters
+ * and returns a `Promise<void>`.
  * @property register - The `register` function in the `AuthProvider` component is responsible for
- * registering a new user by sending a POST request to the `/auth/register` endpoint with the user data
- * (name, email, password). Upon successful registration, it sets the user information in the state and
- * local storage, displays a success
+ * handling user registration. When invoked, it sends a POST request to the `/auth/register` endpoint
+ * with the user's registration data (name, email, password). Upon a successful registration, it
+ * updates the `user` and `
  * @property logout - The `logout` function in the provided code is responsible for logging out the
- * user. It sends a POST request to the `/auth/logout` endpoint with the user's refresh token to
- * invalidate the session. Upon successful logout, it removes the user information from local storage,
- * displays a success message using `toast
- * @property {any[]} searchResults - The `searchResults` property in the `AuthContextValue` type
- * represents an array that will hold the search results obtained from searching for books based on a
- * query. This array will be populated with the search results fetched from the backend API when the
- * `searchHandler` function is called with a specific query
- * @property {any[]} randomSearchResults - The `randomSearchResults` property in the code snippet is a
- * state variable that holds an array of search results for books fetched from the API when no specific
- * search query is provided. It is used in the `searchHandler` function to store and update the search
- * results when a random search is performed.
- * @property {boolean} isSearching - The `isSearching` property is a boolean state variable that
- * indicates whether a search operation is currently in progress. It is used to control loading
- * indicators or other UI elements to provide feedback to the user that a search is ongoing. When
- * `isSearching` is `true`, it typically means that the application
+ * user. It sends a POST request to the server to revoke the refresh token, removes user and token data
+ * from local storage, displays a success message using toast, and then navigates the user to the
+ * sign-in page.
+ * @property {Book[]} searchResults - The `searchResults` property in the `AuthContextValue` type
+ * represents an array of `Book` objects that are the results of a search query. This array will hold
+ * the books that match the search query entered by the user.
+ * @property {Book[]} randomSearchResults - `randomSearchResults` is a state variable that holds an
+ * array of `Book` objects representing the search results when a search query is not provided. These
+ * results are fetched from the server and stored in this state for display purposes.
+ * @property {boolean} isSearching - The `isSearching` property in the code snippet is a boolean state
+ * variable that is used to indicate whether a search operation is currently in progress or not. It is
+ * initially set to `false` and is updated to `true` when a search operation is triggered, and then set
+ * back to `false
  * @property searchHandler - The `searchHandler` function in the provided code is responsible for
- * handling search functionality. It takes an optional `query` parameter, which is used to search for
- * books based on the query string. If a `query` is provided, it makes a GET request to
- * `/books?search_query=${query
+ * handling book search functionality. It takes an optional `query` parameter which represents the
+ * search query string. If a `query` is provided, it makes a GET request to fetch books that match the
+ * search query from the server using the `
  * @property recommendationSearchHandler - The `recommendationSearchHandler` function is responsible
- * for fetching recommended books from the server. It sets the `isSearching` state to true to indicate
- * that a search operation is in progress. Then it makes a GET request to the `/books/recommendations`
- * endpoint using the `axiosInstance` to
- * @property {any[]} recommendationSearchResults - The `recommendationSearchResults` property in the
- * `AuthContextValue` type represents an array that holds the search results for book recommendations.
- * This array will contain the data fetched from the API endpoint `/books/recommendations` when the
- * `recommendationSearchHandler` function is called. The data in
+ * for fetching recommended books from the server. It sends a GET request to the
+ * `/books/recommendations` endpoint using the `axiosInstance` and updates the state with the received
+ * data. After fetching the recommended books, it sets the `recommendationSearch
+ * @property {Book[]} recommendationSearchResults - `recommendationSearchResults` is an array of `Book`
+ * objects that stores the search results for book recommendations. This array is populated when the
+ * `recommendationSearchHandler` function is called, which fetches book recommendations from the server
+ * and updates the state with the retrieved data.
  */
 
-
-import { ReactNode, createContext, useEffect, useState } from "react";
+import { ReactNode, createContext, useState } from "react";
 import axios, { isAxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
-import { UserInfo } from "@src/types";
+import { Auth, Book, Tokens, User } from "@src/types";
 import toast from "react-hot-toast";
 import axiosInstance from "@src/utils/axiosInstance";
 
 type AuthContextValue = {
-  userInfo: UserInfo | null;
+  user: User | null;
+  tokens: Tokens | null;
   login: (data: { email: string; password: string }) => Promise<void>;
   register: (data: {
     name: string;
@@ -60,16 +61,16 @@ type AuthContextValue = {
     password: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
-  searchResults: any[];
-  randomSearchResults: any[];
+  searchResults: Book[];
+  randomSearchResults: Book[];
   isSearching: boolean;
-  searchHandler: (query?: string) => Promise<void>;
-  recommendationSearchHandler: () => Promise<void>;
-  recommendationSearchResults: any[];
+  searchHandler: (type: "directed" | "random" | "recommend") => Promise<void>;
+  recommendSearchResults: Book[];
+  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
+  searchTerm: string;
 };
 
 export const AuthContext = createContext<AuthContextValue>({
-  userInfo: null,
   login: () => Promise.resolve(),
   register: () => Promise.resolve(),
   logout: () => Promise.resolve(),
@@ -77,37 +78,37 @@ export const AuthContext = createContext<AuthContextValue>({
   isSearching: false,
   searchHandler: () => Promise.resolve(),
   randomSearchResults: [],
-  recommendationSearchResults: [],
-  recommendationSearchHandler: () => Promise.resolve(),
+  recommendSearchResults: [],
+  user: null,
+  tokens: null,
+  setSearchTerm: () => "",
+  searchTerm: "",
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(
-    JSON.parse(localStorage.getItem("userInfo") ?? "null")
+  const [user, setUser] = useState<User>(
+    JSON.parse(localStorage.getItem("user")!) ?? null
+  );
+  const [tokens, setTokens] = useState<Tokens>(
+    JSON.parse(localStorage.getItem("tokens")!) ?? null
   );
   const navigate = useNavigate();
-  const [searchResults, setSearchResults] = useState([]);
-  const [randomSearchResults, setRandomSearchResults] = useState([]);
-  const [recommendationSearchResults, setRecommendationSearchResults] =
-    useState([]);
+  const [searchResults, setSearchResults] = useState<Book[]>([]);
+  const [randomSearchResults, setRandomSearchResults] = useState<Book[]>([]);
+  const [recommendSearchResults, setRecommendSearchResults] =
+    useState<Book[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const userInfoString = localStorage.getItem("userInfo");
-      if (userInfoString) {
-        const parsedUserInfo = JSON.parse(userInfoString) as UserInfo;
-        console.log("🚀 ~ parsedUserInfo:", parsedUserInfo);
-      }
-    })();
-  }, []);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const login = async (userData: { email: string; password: string }) => {
     try {
-      const { data } = await axios.post("/auth/login", userData);
-      setUserInfo(data);
-      localStorage.setItem("userInfo", JSON.stringify(data));
+      const { data } = await axios.post<Auth>("/auth/login", userData);
+      setUser(data.user);
+      setTokens(data.tokens);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("tokens", JSON.stringify(data.tokens));
       toast.success("Login successful");
+      navigate("/");
     } catch (error) {
       toast.error(
         isAxiosError(error)
@@ -123,9 +124,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password: string;
   }) => {
     try {
-      const { data } = await axios.post("/auth/register", userData);
-      setUserInfo(data);
-      localStorage.setItem("userInfo", JSON.stringify(data));
+      const { data } = await axios.post<Auth>("/auth/register", userData);
+      setUser(data.user);
+      setTokens(data.tokens);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("tokens", JSON.stringify(data.tokens));
       toast.success("Register successful");
       navigate("/");
     } catch (error) {
@@ -140,11 +143,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       await axiosInstance.post("/auth/logout", {
-        refreshToken: userInfo?.tokens.refresh.token,
+        refreshToken: tokens.refresh.token,
       });
-      localStorage.removeItem("userInfo");
+      localStorage.removeItem("user");
+      localStorage.removeItem("tokens");
       toast.success("Logout successful");
-      navigate("/login");
+      navigate("/auth/sign-in");
     } catch (error) {
       toast.error(
         isAxiosError(error)
@@ -154,27 +158,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const searchHandler = async (query?: string) => {
+  const searchHandler = async (
+    type: "directed" | "random" | "recommend" = "random"
+  ) => {
     setIsSearching(true);
-    if (query) {
-      const { data } = await axiosInstance.get(`/books?search_query=${query}`);
+    if (searchTerm && type === "directed") {
+      const { data } = await axiosInstance.get<Book[]>(
+        `/books?search_query=${searchTerm}`
+      );
       setSearchResults(data);
-    } else {
-      const { data } = await axiosInstance.get(`/books`);
+    }
+    if (type === "random") {
+      const { data } = await axios.get<Book[]>(`/books/randoms`);
       setRandomSearchResults(data);
+    }
+    if (user && type === "recommend") {
+      const { data } = await axiosInstance.get<Book[]>(
+        `/books/recommendations`
+      );
+      setRecommendSearchResults(data);
     }
     setIsSearching(false);
   };
 
-  const recommendationSearchHandler = async () => {
-    setIsSearching(true);
-    const { data } = await axiosInstance.get(`/books/recommendations`);
-    setRecommendationSearchResults(data);
-    setIsSearching(false);
-  };
-
   const value: AuthContextValue = {
-    userInfo,
     login,
     register,
     logout,
@@ -182,8 +189,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isSearching,
     searchHandler,
     randomSearchResults,
-    recommendationSearchHandler,
-    recommendationSearchResults,
+    recommendSearchResults,
+    user,
+    tokens,
+    setSearchTerm,
+    searchTerm,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

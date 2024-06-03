@@ -1,7 +1,7 @@
 /* This code snippet is setting up an Axios instance with global request and response interceptors for
 handling authentication token refresh. Here's a breakdown of what the code is doing: */
 
-import { UserInfo } from "@src/types";
+import { Auth, Tokens } from "@src/types";
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 
 const axiosInstance = axios.create({
@@ -14,15 +14,9 @@ const axiosInstance = axios.create({
 // Add global request interceptor
 axiosInstance.interceptors.request.use(
   (request: InternalAxiosRequestConfig) => {
-    const userInfoString = localStorage.getItem("userInfo");
-    const userInfo: UserInfo | null = userInfoString
-      ? JSON.parse(userInfoString)
-      : null;
-
-    if (userInfo && userInfo.tokens.access) {
-      request.headers[
-        "Authorization"
-      ] = `Bearer ${userInfo.tokens.access.token}`;
+    const tokens = JSON.parse(localStorage.getItem("tokens")!) as Tokens;
+    if (tokens) {
+      request.headers["Authorization"] = `Bearer ${tokens.access.token}`;
     }
 
     return request;
@@ -46,33 +40,29 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true; // Mark the request as retried to avoid infinite loops.
 
       try {
-        const userInfoString = localStorage.getItem("userInfo");
-        const userInfo: UserInfo | null = userInfoString
-          ? JSON.parse(userInfoString)
-          : null;
+        const tokens = JSON.parse(localStorage.getItem("tokens")!) as Tokens;
 
         // Make a request to your auth server to refresh the token.
-        const response = await axios.post(
+        const { data } = await axios.post<Auth>(
           `${import.meta.env.VITE_API_BASE_URL}/auth/refresh-tokens`,
           {
-            refreshToken: userInfo?.tokens.refresh.token,
+            refreshToken: tokens.refresh.token,
           }
         );
 
         // Store the new access and refresh tokens.
-        localStorage.setItem("userInfo", JSON.stringify(response.data));
+        localStorage.setItem("tokens", JSON.stringify(data.tokens));
 
         // Update the authorization header with the new access token.
-        const newUserInfo = response.data as UserInfo;
         axiosInstance.defaults.headers.common[
           "Authorization"
-        ] = `Bearer ${newUserInfo.tokens.access.token}`;
+        ] = `Bearer ${data.tokens.access.token}`;
 
         return axiosInstance(originalRequest); // Retry the original request with the new access token.
       } catch (refreshError) {
         // Handle refresh token errors by clearing stored tokens and redirecting to the login page.
         console.error("Token refresh failed:", refreshError);
-        localStorage.removeItem("userInfo");
+        localStorage.removeItem("tokens");
         window.location.href = "/auth/sign-in";
         return Promise.reject(refreshError);
       }
