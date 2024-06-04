@@ -10,18 +10,9 @@
 
 import TextInput from "@components/Form/TextInput";
 import { useAuth } from "@src/hooks/useAuth";
-import { useDebounce } from "@src/hooks/useDebounce";
-import { useEffect } from "react";
 
 export default function SearchBar() {
-  const { searchHandler, user, setSearchTerm, searchTerm } = useAuth();
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
-  useEffect(() => {
-    if (user && debouncedSearchTerm.length >= 3) {
-      (async () => await searchHandler("directed"))();
-    }
-  }, [debouncedSearchTerm]);
+  const { user, setSearchTerm, searchTerm } = useAuth();
 
   return (
     <TextInput
