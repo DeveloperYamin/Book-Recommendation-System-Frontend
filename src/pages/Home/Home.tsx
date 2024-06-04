@@ -1,37 +1,37 @@
 import Card from "@components/Common/Card";
 import { CircularProgress } from "@mui/material";
 import { useAuth } from "@src/hooks/useAuth";
-import { useEffect } from "react";
+import { Book } from "@src/types";
+import { useEffect, useState } from "react";
 
-function Home() {
-  const {
-    isSearching,
-    searchResults,
-    searchHandler,
-    randomSearchResults,
-    searchTerm,
-    user,
-    recommendSearchResults,
-  } = useAuth();
+const Home: React.FC = () => {
+  const { searchHandler, debouncedSearchTerm, user, searchTerm } = useAuth();
+  const [searchResults, setSearchResults] = useState<Book[]>([]);
+  const [randomSearchResults, setRandomSearchResults] = useState<Book[]>([]);
+  const [recommendSearchResults, setRecommendSearchResults] = useState<Book[]>(
+    []
+  );
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     (async () => {
-      if (searchTerm && user) {
-        await searchHandler("directed");
+      if (user && debouncedSearchTerm.length >= 3) {
+        setSearchResults(await searchHandler("directed"));
       } else if (user) {
-        await searchHandler("recommend");
+        setRecommendSearchResults(await searchHandler("recommend"));
       } else {
-        await searchHandler("random");
+        setRandomSearchResults(await searchHandler("random"));
       }
+      setIsSearching(false);
     })();
-  }, []);
+  }, [debouncedSearchTerm, searchHandler, user]);
 
   return (
     <section>
       <h1 className="text-center text-white ">
-        {searchTerm && searchResults.length
+        {user && searchTerm && searchResults.length
           ? "Search Results"
-          : recommendSearchResults.length
+          : user && recommendSearchResults.length
           ? "Recommend Results"
           : "Random Results"}
       </h1>
@@ -45,12 +45,12 @@ function Home() {
             ? searchResults
             : randomSearchResults.length
             ? randomSearchResults
-            : randomSearchResults
-          )?.map((item, idx) => <Card key={idx} item={item} />)
+            : recommendSearchResults
+          ).map((item, idx) => <Card key={idx} item={item} />)
         )}
       </div>
     </section>
   );
-}
+};
 
 export default Home;

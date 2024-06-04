@@ -7,7 +7,7 @@ import { NavLink as RouterNavLink } from "react-router-dom";
 function UserSection() {
   const { user, logout } = useAuth();
 
-  return user? (
+  return user ? (
     <>
       <li className="grow-0 basis-auto shrink-0">
         <span className="text-lg capitalize cursor-default">
@@ -41,11 +41,7 @@ function UserSection() {
   ) : (
     <>
       <li className="grow-0 basis-auto shrink-0">
-        <Link
-          to={"/account"}
-          className="text-white"
-          component={RouterNavLink}
-        >
+        <Link to="/auth/sign-in" className="text-white" component={RouterNavLink}>
           <span className="capitalize text-lg drop-shadow-[0_0_5px_rgba(255,255,255,0.25)] hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
             Account
           </span>
